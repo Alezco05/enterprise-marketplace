@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # ---------------------------------------------------------------------
+  # CAPA DE MENSAJERÍA (BROKER) - Requerido para Event-Driven
+  # ---------------------------------------------------------------------
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: marketplace-rabbitmq
+    ports:
+      - "5672:5672"   # Comunicación AMQP de los microservicios
+      - "15672:15672" # Panel de control Web (Http://localhost:15672)
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - marketplace-network
+
+  # ---------------------------------------------------------------------
+  # CAPA DE CACHÉ Y RATE-LIMITING - Requerido para el Gateway Express
+  # ---------------------------------------------------------------------
+  gateway-cache:
+    image: redis:alpine
+    container_name: marketplace-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - marketplace-network
+
+  # ---------------------------------------------------------------------
+  # CAPA DE OBSERVABILIDAD - Logs Centralizados
+  # ---------------------------------------------------------------------
+  seq:
+    image: datalust/seq:latest
+    container_name: marketplace-seq
+    ports:
+      - "5341:5341" # Puerto de ingesta de logs
+      - "8081:80"   # Panel Web de Seq (Http://localhost:8081)
+    environment:
+      - ACCEPT_EULA=Y
+    volumes:
+      - seq-data:/data
+    networks:
+      - marketplace-network
+
+volumes:
+  rabbitmq-data:
+  seq-data:
+
+networks:
+  marketplace-network:
+    driver: bridge
