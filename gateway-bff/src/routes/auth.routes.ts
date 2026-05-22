@@ -5,34 +5,39 @@ import { validateSchema } from "../middlewares/validate.middleware.js";
 import { LoginSchema, RegisterSchema } from "../schemas/auth.schema.js";
 
 const router = Router();
-const target = process.env.IDENTITY_SERVICE_URL || "http://localhost:5001";
+const target = process.env.IDENTITY_SERVICE_URL || "http://127.0.0.1:5066";
 
-// 🎯 Interceptamos el POST /login: Se valida con Zod y si pasa, se redirige por la tubería proxy a .NET
+// 🎯 Interceptamos el POST /login
 router.post(
   "/login", 
   validateSchema(LoginSchema), 
   createProxyMiddleware({
     target,
-    ...getSharedProxyOptions("IdentityService")
+    ...getSharedProxyOptions("IdentityService"),
+    // 🚀 EXPLICACIÓN: Toma el "/" inicial del endpoint y lo reescribe como "/api/auth/"
+    pathRewrite: { "^/": "/api/auth/" } 
   })
 );
 
-// 🎯 Interceptamos el POST /register: Se valida con Zod (mínimo 6 caracteres de clave) antes de ir a .NET
+// 🎯 Interceptamos el POST /register
 router.post(
   "/register", 
   validateSchema(RegisterSchema), 
   createProxyMiddleware({
     target,
-    ...getSharedProxyOptions("IdentityService")
+    ...getSharedProxyOptions("IdentityService"),
+    // 🚀 EXPLICACIÓN: Transforma el "/" inicial de la subruta en "/api/auth/" para que .NET lo entienda
+    pathRewrite: { "^/": "/api/auth/" } 
   })
 );
 
-// 🌍 Comodín: Cualquier otra ruta secundaria de auth pasa directo sin validación previa del BFF
+// 🌍 Comodín
 router.use(
   "/", 
   createProxyMiddleware({
     target,
-    ...getSharedProxyOptions("IdentityService")
+    ...getSharedProxyOptions("IdentityService"),
+    pathRewrite: { "^/": "/api/auth/" }
   })
 );
 

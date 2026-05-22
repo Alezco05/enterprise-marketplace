@@ -32,7 +32,7 @@ var app = builder.Build();
 // Configurar el pipeline HTTP
 if (app.Environment.IsDevelopment())
 {
-    app.UseHttpsRedirection();
+    //app.UseHttpsRedirection();
 }
 
 app.UseCors("GatewayPolicy");
