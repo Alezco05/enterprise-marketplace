@@ -1,24 +1,30 @@
 {
   "name": "gateway-bff",
   "version": "1.0.0",
-  "description": "",
-  "license": "ISC",
-  "author": "",
   "type": "module",
-  "main": "index.js",
+  "main": "dist/app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "tsx watch src/app.ts",
+    "build": "tsc",
+    "start": "node dist/app.js",
+    "clean": "powershell -Command \"if (Test-Path dist) { Remove-Item -Recurse -Force dist }\""
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^25.9.1",
+    "tsx": "^4.22.3",
     "typescript": "^6.0.3"
   },
   "dependencies": {
     "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.5.2",
     "helmet": "^8.1.0",
     "http-proxy-middleware": "^4.0.0",
-    "socket.io": "^4.8.3"
+    "jsonwebtoken": "^9.0.3",
+    "socket.io": "^4.8.3",
+    "zod": "^4.4.3"
   }
 }

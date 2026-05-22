@@ -1,0 +1,32 @@
+# =========================================================================
+# 📦 ARCHIVOS DE COMPILACIÓN Y SALIDAS (El equivalente a node_modules)
+# =========================================================================
+bin/
+obj/
+
+
+# =========================================================================
+# 🗄️ BASES DE DATOS LOCALES (Para que no se suba tu SQLite de pruebas)
+# =========================================================================
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# =========================================================================
+# ⚙️ CONFIGURACIONES DE ENTORNO Y LLAVES (No subir secretos locales)
+# =========================================================================
+.env
+appsettings.local.json
+.usersecrets/
+
+# =========================================================================
+# 🛠️ HERRAMIENTAS Y EDITORES (VS Code, Visual Studio, Rider)
+# =========================================================================
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates

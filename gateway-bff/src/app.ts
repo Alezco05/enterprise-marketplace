@@ -1,10 +1,14 @@
+import "dotenv/config";
 import express from "express";
 import type { Application, Request, Response, NextFunction } from "express";
 import cors from "cors";
 import helmet from "helmet";
-import http from "http";
+import http from "node:http";
 import { Server as IOServer } from "socket.io";
 import { mainRouter } from "./routes/index.js";
+
+
+import { globalRateLimiter } from "./middlewares/security.middleware.js";
 
 const app: Application = express();
 
@@ -12,6 +16,8 @@ const app: Application = express();
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
+app.use(globalRateLimiter);
+app.use(express.json({ limit: "2mb" })); // Limite de tamaño para evitar abusos|
 
 // Enrutador principal montado en '/'
 app.use("/", mainRouter);
@@ -32,13 +38,8 @@ const io = new IOServer(server, { cors: { origin: "*" } });
 export { app, server, io };
 
 // Arrancamos el servidor solo si este módulo es el entrypoint principal
-if (process.argv[1] && process.argv[1].endsWith("app.ts")) {
-	server.listen(port, () => {
-		// Mensaje minimal y claro de que el Gateway/BFF está corriendo
-		// Evitamos exponer lógica de negocio aquí
-		// eslint-disable-next-line no-console
-		console.log(`Gateway/BFF running on port ${port}`);
-	});
-}
+server.listen(port, () => {
+  console.log(`🚀 Gateway/BFF running on port ${port}`);
+});
 
 export default app;
