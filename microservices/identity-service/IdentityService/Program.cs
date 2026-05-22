@@ -16,6 +16,17 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("GatewayPolicy", policy =>
+    {
+        policy.WithOrigins("http://localhost:3000") // Permite peticiones estrictamente desde tu Gateway Express
+              .AllowAnyMethod()                     // Permite POST, GET, PUT, DELETE, etc.
+              .AllowAnyHeader();                    // Permite cualquier cabecera (incluyendo tus cabeceras X-User-*)
+    });
+});
+
+
 var app = builder.Build();
 
 // Configurar el pipeline HTTP
@@ -24,6 +35,7 @@ if (app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
+app.UseCors("GatewayPolicy");
 app.UseAuthorization();
 app.MapControllers();
 

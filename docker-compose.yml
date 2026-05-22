@@ -2,14 +2,14 @@ version: '3.8'
 
 services:
   # ---------------------------------------------------------------------
-  # CAPA DE MENSAJERÍA (BROKER) - Requerido para Event-Driven
+  # CAPA DE MENSAJERÍA (BROKER)
   # ---------------------------------------------------------------------
   rabbitmq:
     image: rabbitmq:3-management-alpine
     container_name: marketplace-rabbitmq
     ports:
-      - "5672:5672"   # Comunicación AMQP de los microservicios
-      - "15672:15672" # Panel de control Web (Http://localhost:15672)
+      - "5672:5672"
+      - "15672:15672"
     environment:
       - RABBITMQ_DEFAULT_USER=guest
       - RABBITMQ_DEFAULT_PASS=guest
@@ -19,7 +19,7 @@ services:
       - marketplace-network
 
   # ---------------------------------------------------------------------
-  # CAPA DE CACHÉ Y RATE-LIMITING - Requerido para el Gateway Express
+  # CAPA DE CACHÉ Y RATE-LIMITING
   # ---------------------------------------------------------------------
   gateway-cache:
     image: redis:alpine
@@ -36,8 +36,8 @@ services:
     image: datalust/seq:latest
     container_name: marketplace-seq
     ports:
-      - "5341:5341" # Puerto de ingesta de logs
-      - "8081:80"   # Panel Web de Seq (Http://localhost:8081)
+      - "5341:5341"
+      - "8081:80"
     environment:
       - ACCEPT_EULA=Y
     volumes:
@@ -45,9 +45,50 @@ services:
     networks:
       - marketplace-network
 
+  # ---------------------------------------------------------------------
+  # 🚀 NUESTRA CAPA DE APLICACIONES (TUS PROGRAMAS)
+  # ---------------------------------------------------------------------
+  
+  # 🚪 API Gateway / BFF (Express + TS)
+  gateway-bff:
+    build:
+      context: ./gateway-bff
+      dockerfile: Dockerfile
+    container_name: marketplace-gateway
+    ports:
+      - "3000:3000" # Exponemos el Gateway a tu máquina local Windows
+    environment:
+      - PORT=3000
+      - JWT_SECRET=TuClaveSecretaSuperSeguraDeAlMenos32CaracteresParaElMarketplace!
+      - IDENTITY_SERVICE_URL=http://identity-service:5001 # 💡 Truco Senior: Usamos el nombre del servicio de Docker como URL interna
+      - ORDER_SERVICE_URL=http://order-service:5003
+    depends_on:
+      - gateway-cache # Espera a que Redis encienda primero antes de arrancar Express
+    networks:
+      - marketplace-network
+
+  # 🔑 Identity Service (.NET 10)
+  identity-service:
+    build:
+      context: ./microservices/identity-service/IdentityService
+      dockerfile: Dockerfile
+    container_name: marketplace-identity-service
+    ports:
+      - "5001:5001" # Opcional: para que puedas consultarlo directo desde tu Windows
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5001
+      - ConnectionStrings__DefaultConnection=Data Source=/app/data/identity.db # Guarda el SQLite dentro del contenedor
+      - Jwt__Secret=TuClaveSecretaSuperSeguraDeAlMenos32CaracteresParaElMarketplace!
+    volumes:
+      - identity-db-data:/app/data # Volumen persistente para que no se borren tus usuarios de SQLite al apagar Docker
+    networks:
+      - marketplace-network
+
 volumes:
   rabbitmq-data:
   seq-data:
+  identity-db-data: # Guardará tu archivo identity.db de forma segura
 
 networks:
   marketplace-network:

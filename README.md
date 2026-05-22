@@ -9,7 +9,7 @@ Este entorno ejecuta la mensajería y observabilidad en Docker, mientras que los
 
 1. **Encender los servicios de soporte (RabbitMQ, Redis, Seq):**
    ```bash
-   docker-compose up -d
+   docker-compose up -d --build
    ```
 
 2. **Verificar contenedores activos:**

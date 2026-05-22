@@ -1,0 +1,19 @@
+# Usa la imagen del SDK de .NET 10 para compilar el proyecto
+FROM ://microsoft.com AS build
+WORKDIR /src
+COPY ["IdentityService.csproj", "./"]
+RUN dotnet restore "./IdentityService.csproj"
+COPY . .
+RUN dotnet build "IdentityService.csproj" -c Release -o /app/build
+RUN dotnet publish "IdentityService.csproj" -c Release -o /app/publish
+
+# Usa la imagen de ejecución ligera de .NET 10 para correr la app
+FROM ://microsoft.com AS final
+WORKDIR /app
+
+# 🚀 CORRECCIÓN AQUÍ: Agregamos "RUN" por delante para que Docker sepa que es un comando de consola
+RUN mkdir -p /app/data
+
+COPY --from=build /app/publish .
+EXPOSE 5001
+ENTRYPOINT ["dotnet", "IdentityService.dll"]
